@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model academy {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name    String @db.VarChar(255)
+  user_id String @db.Uuid
+  user    user   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  team    team[]
+}
+
+model coach {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String          @db.Uuid
+  team_id       String          @db.Uuid
+  team          team            @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user          user            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  training_plan training_plan[]
+}
+
+model event {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String   @db.VarChar(255)
+  start_time DateTime @db.Timestamp(6)
+  end_time   DateTime @db.Timestamp(6)
+  location   String?  @db.VarChar(255)
+  team_id    String   @db.Uuid
+  team       team     @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model player {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String          @db.Uuid
+  team_id        String          @db.Uuid
+  team           team            @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user           user            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  player_profile player_profile?
+  training_plan  training_plan[]
+}
+
+model player_profile {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id   String  @unique @db.Uuid
+  position    String? @db.VarChar(255)
+  skill_level Int?
+  player      player  @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model team {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String   @db.VarChar(255)
+  academy_id String   @db.Uuid
+  coach      coach[]
+  event      event[]
+  player     player[]
+  academy    academy  @relation(fields: [academy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model training_plan {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String  @db.VarChar(255)
+  description String?
+  coach_id    String  @db.Uuid
+  player_id   String  @db.Uuid
+  coach       coach   @relation(fields: [coach_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  player      player  @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email       String    @unique @db.VarChar(255)
+  firstName   String?   @db.VarChar(255)
+  lastName    String?   @db.VarChar(255)
+  roq_user_id String    @db.VarChar(255)
+  tenant_id   String    @db.VarChar(255)
+  academy     academy[]
+  coach       coach[]
+  player      player[]
+}
